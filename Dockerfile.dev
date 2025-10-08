@@ -1,0 +1,18 @@
+# --- Base Image for Dev ---
+FROM node:20-alpine AS dev
+
+WORKDIR /app
+
+# Install dependencies first (cached layer)
+COPY package*.json ./
+RUN npm install
+
+# Copy only what's needed for runtime here.
+# The rest of your source will be mounted at runtime by docker-compose
+# so no need to COPY . .
+
+# Expose dev port
+EXPOSE 3000
+
+# Run Next.js in dev mode (hot reload)
+CMD ["npm", "run", "dev"]
