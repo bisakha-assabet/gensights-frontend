@@ -11,7 +11,7 @@ const TopicsByGroupPage = () => {
       showFilters={true}
     >
       <ReusableChart
-        apiEndpoint="/admin/analytics/group/"
+        apiEndpoint="/analytics/group/"
         title="Analytics for topics by group"
         description="Distribution of inquiry topics across different groups"
         chartHeight={400}

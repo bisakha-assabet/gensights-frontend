@@ -47,6 +47,10 @@ const SideNav = () => {
   const router = useRouter()
   const pathname = usePathname()
 
+  // Local loading state for optimistic UI feedback
+  const [newChatLoading, setNewChatLoading] = useState(false)
+  const [loadingConversationId, setLoadingConversationId] = useState<string | null>(null)
+
   // Check if user is on chat page
   const isOnChatPage = pathname.startsWith("/chat")
 
@@ -77,9 +81,11 @@ const SideNav = () => {
 
   // Handle chat-specific actions
   const handleNewChat = () => {
+    // set optimistic loading state so user sees immediate feedback
+    setNewChatLoading(true)
+    // navigate to chat and refresh list; avoid full page reload for better UX
     router.push("/chat")
     refetch()
-    window.location.reload()
   }
 
   // Search conversation implementation - FIXED
@@ -134,8 +140,37 @@ const SideNav = () => {
   }, [searchQuery])
 
   const handleConversationClick = (conversationId: string) => {
+    // mark the conversation as loading so UI shows feedback immediately
+    setLoadingConversationId(conversationId)
     router.push(`/chat/${conversationId}`)
   }
+
+  // Clear optimistic loading indicators when navigation completes or we leave chat
+  useEffect(() => {
+    if (pathname === "/chat") {
+      setNewChatLoading(false)
+      // If we navigated to chat root, clear any conversation loading id
+      setLoadingConversationId(null)
+      return
+    }
+
+    if (pathname.startsWith("/chat/")) {
+      // extract id from path: /chat/:id
+      const parts = pathname.split("/")
+      const id = parts.length >= 3 ? parts[2] : null
+      // stop the loading indicator if it matches the id we navigated to
+      if (id && loadingConversationId === id) {
+        setLoadingConversationId(null)
+      }
+      // also clear new chat loading once we are on a chat route
+      setNewChatLoading(false)
+      return
+    }
+
+    // left chat area: clear both
+    setNewChatLoading(false)
+    setLoadingConversationId(null)
+  }, [pathname])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -399,9 +434,19 @@ const SideNav = () => {
                         className={`flex items-center w-full rounded-md transition-colors group ${
                           isCollapsed ? "px-1 py-1" : "px-3 py-2"
                         } text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800`}
+                        aria-busy={item.id === "new-chat" ? newChatLoading : undefined}
                       >
                         <IconComponent className="h-4 w-4 flex-shrink-0" />
-                        {!isCollapsed && <span className="ml-3 text-sm">{item.label}</span>}
+                        {!isCollapsed && (
+                          <>
+                            <span className="ml-3 text-sm">{item.label}</span>
+                            {item.id === "new-chat" && newChatLoading && (
+                              <div className="ml-2">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
+                              </div>
+                            )}
+                          </>
+                        )}
                       </button>
                     )}
                   </div>
@@ -442,10 +487,18 @@ const SideNav = () => {
                           className="flex items-start w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors group"
                           onClick={() => handleConversationClick(conversation.conversation_id)}
                           title={conversation.title}
+                          aria-busy={loadingConversationId === conversation.conversation_id}
                         >
                           <MessageSquare className="h-4 w-4 flex-shrink-0 mr-3 mt-0.5" />
                           <div className="flex-1 text-left overflow-hidden">
-                            <div className="truncate font-medium">{conversation.title || "Untitled Conversation"}</div>
+                            <div className="flex items-center">
+                              <div className="truncate font-medium">{conversation.title || "Untitled Conversation"}</div>
+                              {loadingConversationId === conversation.conversation_id && (
+                                <div className="ml-2">
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-500"></div>
+                                </div>
+                              )}
+                            </div>
                             <div className="flex items-center text-xs text-gray-500 dark:text-gray-500 mt-1">
                               <Clock className="h-3 w-3 mr-1" />
                               <span>{formatDate(conversation.updated_at)}</span>

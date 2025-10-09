@@ -11,7 +11,7 @@ const WeeklyTimeline = () => {
       showFilters={true}
     >
       <ReusableChart
-        apiEndpoint="/admin/analytics/weekly/"
+        apiEndpoint="/analytics/weekly/"
         title="Analytics for topics by week"
         description="Distribution of inquiry topics across different weeks"
         chartHeight={400}

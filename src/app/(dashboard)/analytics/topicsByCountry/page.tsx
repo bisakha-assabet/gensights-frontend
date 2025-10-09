@@ -11,7 +11,7 @@ const TopicsByCountryPage = () => {
       showFilters={true}
     >
       <ReusableChart
-        apiEndpoint="/admin/analytics/country/"
+        apiEndpoint="/analytics/country/"
         title="Analytics for topics by country"
         description="Distribution of inquiry topics across different countries"
         chartHeight={400}

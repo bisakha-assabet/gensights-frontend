@@ -11,7 +11,7 @@ const TopicsByMonthPage = () => {
       showFilters={true}
     >
       <ReusableChart
-        apiEndpoint="/admin/analytics/month/"
+        apiEndpoint="/analytics/month/"
         title="Analytics for topics by month"
         description="Distribution of inquiry topics across different months"
         chartHeight={400}
