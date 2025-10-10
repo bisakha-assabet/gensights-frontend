@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 export const useFilterState = () => {
-  const [selectedProduct, setSelectedProduct] = useState("Product");
-  const [selectedCountry, setSelectedCountry] = useState("Country");
+  const [selectedProduct, setSelectedProduct] = useState<string[]>([]);
+  const [selectedCountry, setSelectedCountry] = useState<string[]>([]);
   const [selectedQuarter, setSelectedQuarter] = useState("Quarter");
   const [selectedYear, setSelectedYear] = useState("Year");
   
-  const [appliedProduct, setAppliedProduct] = useState("Product");
-  const [appliedCountry, setAppliedCountry] = useState("Country");
+  const [appliedProduct, setAppliedProduct] = useState<string[]>([]);
+  const [appliedCountry, setAppliedCountry] = useState<string[]>([]);
   const [appliedQuarter, setAppliedQuarter] = useState("Quarter");
   const [appliedYear, setAppliedYear] = useState("Year");
   
@@ -19,28 +19,28 @@ export const useFilterState = () => {
 
   // Check if any filters are selected (not yet applied)
   const hasSelectedFilters = () => {
-    return selectedProduct !== "Product" || 
-           selectedCountry !== "Country" || 
+    return selectedProduct.length > 0 || 
+      selectedCountry.length > 0 || 
            selectedQuarter !== "Quarter" || 
            selectedYear !== "Year";
   };
 
   // Check if any filters are currently applied
   const hasAppliedFilters = () => {
-    return appliedProduct !== "Product" || 
-           appliedCountry !== "Country" || 
+    return appliedProduct.length > 0 || 
+      appliedCountry.length > 0 || 
            appliedQuarter !== "Quarter" || 
            appliedYear !== "Year";
   };
 
   // Reset all filters
   const resetFilters = () => {
-    setSelectedProduct("Product");
-    setSelectedCountry("Country");
+    setSelectedProduct([]);
+    setSelectedCountry([]);
     setSelectedQuarter("Quarter");
     setSelectedYear("Year");
-    setAppliedProduct("Product");
-    setAppliedCountry("Country");
+    setAppliedProduct([]);
+    setAppliedCountry([]);
     setAppliedQuarter("Quarter");
     setAppliedYear("Year");
   };

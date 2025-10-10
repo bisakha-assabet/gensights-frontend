@@ -176,8 +176,8 @@ export const useDataManagement = (deviceUuid?: string) => {
 
   // Calculate available filter options based on current selections
   const updateAvailableOptions = (
-    selectedProduct: string,
-    selectedCountry: string,
+    selectedProduct: string[],
+    selectedCountry: string[],
     selectedQuarter: string,
     selectedYear: string
   ) => {
@@ -192,22 +192,25 @@ export const useDataManagement = (deviceUuid?: string) => {
     });
 
     const tempFilters = {
-      product: selectedProduct !== "Product" ? selectedProduct : undefined,
-      country: selectedCountry !== "Country" ? selectedCountry : undefined,
+      product: selectedProduct.length ? selectedProduct : undefined,
+      country: selectedCountry.length ? selectedCountry : undefined,
       quarter: selectedQuarter !== "Quarter" ? selectedQuarter : undefined,
       year: selectedYear !== "Year" ? selectedYear : undefined,
+    } as {
+      product?: string[];
+      country?: string[];
+      quarter?: string; // single selection
+      year?: string;    // single selection
     };
 
     let questionsForProducts = [...allData.questions];
     if (tempFilters.country) {
       questionsForProducts = questionsForProducts.filter(
-        (q) => q.country_code === tempFilters.country
+        (q) => tempFilters.country!.includes(q.country_code)
       );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(
-        tempFilters.quarter.replace("Q", "")
-      );
+      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""));
       questionsForProducts = questionsForProducts.filter((q) => {
         const date = new Date(q.case_created_date);
         const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
@@ -227,13 +230,11 @@ export const useDataManagement = (deviceUuid?: string) => {
     let questionsForCountries = [...allData.questions];
     if (tempFilters.product) {
       questionsForCountries = questionsForCountries.filter(
-        (q) => q.product === tempFilters.product
+        (q) => tempFilters.product!.includes(q.product)
       );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(
-        tempFilters.quarter.replace("Q", "")
-      );
+      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""));
       questionsForCountries = questionsForCountries.filter((q) => {
         const date = new Date(q.case_created_date);
         const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
@@ -253,20 +254,18 @@ export const useDataManagement = (deviceUuid?: string) => {
     let questionsForQuarters = [...allData.questions];
     if (tempFilters.product) {
       questionsForQuarters = questionsForQuarters.filter(
-        (q) => q.product === tempFilters.product
+        (q) => tempFilters.product!.includes(q.product)
       );
     }
     if (tempFilters.country) {
       questionsForQuarters = questionsForQuarters.filter(
-        (q) => q.country_code === tempFilters.country
+        (q) => tempFilters.country!.includes(q.country_code)
       );
     }
     if (tempFilters.year) {
-      const quarterNumber = Number.parseInt(tempFilters.year.replace("Q", ""));
       questionsForQuarters = questionsForQuarters.filter((q) => {
         const date = new Date(q.case_created_date);
-        const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
-        return questionQuarter === quarterNumber;
+        return date.getFullYear().toString() === tempFilters.year;
       });
     }
     const availableQuarterNumbers = Array.from(
@@ -284,18 +283,16 @@ export const useDataManagement = (deviceUuid?: string) => {
     let questionsForYears = [...allData.questions];
     if (tempFilters.product) {
       questionsForYears = questionsForYears.filter(
-        (q) => q.product === tempFilters.product
+        (q) => tempFilters.product!.includes(q.product)
       );
     }
     if (tempFilters.country) {
       questionsForYears = questionsForYears.filter(
-        (q) => q.country_code === tempFilters.country
+        (q) => tempFilters.country!.includes(q.country_code)
       );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(
-        tempFilters.quarter.replace("Q", "")
-      );
+      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""));
       questionsForYears = questionsForYears.filter((q) => {
         const date = new Date(q.case_created_date);
         const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
@@ -330,8 +327,8 @@ export const useDataManagement = (deviceUuid?: string) => {
 
   // Apply filters (fetch filtered data)
   const applyFilters = async (
-    selectedProduct: string,
-    selectedCountry: string,
+    selectedProduct: string[],
+    selectedCountry: string[],
     selectedQuarter: string,
     selectedYear: string
   ) => {
@@ -340,9 +337,8 @@ export const useDataManagement = (deviceUuid?: string) => {
 
     try {
       const queryParams = buildQuery({
-        product: selectedProduct !== "Product" ? selectedProduct : undefined,
-        country_code:
-          selectedCountry !== "Country" ? selectedCountry : undefined,
+        product: selectedProduct.length ? selectedProduct : undefined,
+        country_code: selectedCountry.length ? selectedCountry : undefined,
         quarter: selectedQuarter !== "Quarter" ? selectedQuarter : undefined,
         year: selectedYear !== "Year" ? selectedYear : undefined,
       });

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 import ClusterGraphControls from '../ClusterGraphControls';
 import ClusterGraphFilters from '../ClusterGraphFilters';
 import FilterActions from './FilterActions';
@@ -8,10 +9,10 @@ interface DashboardHeaderProps {
   totalSteps: number;
   getStepTitle: () => string;
   getCurrentSummary: () => string;
-  selectedProduct: string;
-  setSelectedProduct: (value: string) => void;
-  selectedCountry: string;
-  setSelectedCountry: (value: string) => void;
+  selectedProduct: string[];
+  setSelectedProduct: Dispatch<SetStateAction<string[]>>;
+  selectedCountry: string[];
+  setSelectedCountry: Dispatch<SetStateAction<string[]>>;
   selectedQuarter: string;
   setSelectedQuarter: (value: string) => void;
   selectedYear: string;

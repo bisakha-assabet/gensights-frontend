@@ -1,23 +1,26 @@
-export function buildQuery(params: Record<string, string | undefined>) {
+export function buildQuery(params: Record<string, (string | number)[] | string | number | undefined>) {
   const searchParams = new URLSearchParams();
  
   console.log('buildQuery input params:', params);
  
-  for (const [key, value] of Object.entries(params)) {
-    if (value && value !== "Product" && value !== "Country" && value !== "Quarter" && value !== "Year") {
+  for (const [key, rawValues] of Object.entries(params)) {
+    if (rawValues === undefined) continue;
+    const values = Array.isArray(rawValues) ? rawValues : [rawValues];
+    if (values.length === 0) continue;
+    for (const raw of values) {
+      let value = String(raw);
       if (key === 'quarter') {
-        // Convert "Q1", "Q2", etc. to integers 1, 2, etc.
-        const quarterNumber = value.replace('Q', '');
-        // Validate quarter is between 1-4
+        // Accept either "Q1" style or plain number
+        const quarterNumber = value.startsWith('Q') ? value.replace('Q', '') : value;
         const quarterInt = parseInt(quarterNumber);
-        if (quarterInt >= 1 && quarterInt <= 4) {
-          searchParams.set(key, quarterNumber);
-          console.log(`Added quarter: ${quarterNumber}`);
+        if (!Number.isNaN(quarterInt) && quarterInt >= 1 && quarterInt <= 4) {
+          searchParams.append(key, String(quarterInt));
+          console.log(`Added quarter: ${quarterInt}`);
         } else {
           console.warn(`Invalid quarter value: ${value}`);
         }
       } else {
-        searchParams.set(key, value);
+        searchParams.append(key, value);
         console.log(`Added ${key}: ${value}`);
       }
     }

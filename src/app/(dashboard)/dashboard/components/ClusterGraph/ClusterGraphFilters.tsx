@@ -33,7 +33,7 @@ export default function ClusterGraphFilters({
   // Preselect product if therapeutic specialist
   useEffect(() => {
     if (userProduct) {
-      setSelectedProduct(userProduct);
+      setSelectedProduct([userProduct]);
     }
   }, [userProduct]);
 
@@ -48,15 +48,22 @@ export default function ClusterGraphFilters({
     }
   };
 
-  const handleSelection = (type: string, value: string) => {
+  const toggleSelection = (type: 'product'|'country', value: string) => {
     if (loading) return;
+    const toggle = (arr: string[], v: string) => arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
     switch (type) {
-      case 'product': setSelectedProduct(value); setProductDropdownOpen(false); break;
-      case 'country': setSelectedCountry(value); setCountryDropdownOpen(false); break;
-      case 'quarter': setSelectedQuarter(value); setQuarterDropdownOpen(false); break;
-      case 'year': setSelectedYear(value); setYearDropdownOpen(false); break;
+      case 'product': setSelectedProduct((prev: string[]) => toggle(prev, value)); break;
+      case 'country': setSelectedCountry((prev: string[]) => toggle(prev, value)); break;
     }
   };
+
+  const clearSelection = (type: 'product'|'country') => {
+    if (loading) return;
+    switch (type) {
+      case 'product': setSelectedProduct([]); break;
+      case 'country': setSelectedCountry([]); break;
+    }
+  }
 
   const getButtonClasses = (isOpen: boolean) => {
     const base = "flex items-center space-x-2 px-3 py-1 text-sm border border-gray-300 rounded-md transition-colors";
@@ -79,21 +86,32 @@ export default function ClusterGraphFilters({
     return user?.role !== 'Country Head';
   };
 
+  const renderButtonLabel = (placeholder: string, values: string[]) => {
+    if (values.length === 0) return placeholder;
+    if (values.length === 1) return values[0];
+    return `${values.length} selected`;
+  };
+
   return (
     <div className="justify-center right-10 z-10 flex flex-wrap gap-2 mt-5">
       {/* Product Filter */}
       {shouldShowProductFilter() && (
         <div className="relative">
           <button onClick={() => handleDropdownToggle('product')} disabled={loading} className={getButtonClasses(productDropdownOpen)}>
-            <span className={selectedProduct !== "Product" ? "font-medium" : ""}>{selectedProduct}</span>
+            <span className={selectedProduct.length ? "font-medium" : ""}>{renderButtonLabel('Product', selectedProduct)}</span>
             <ChevronDown size={16} className={loading ? "opacity-50" : ""} />
           </button>
           {productDropdownOpen && !loading && (
             <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
-              <button onClick={() => handleSelection('product', 'Product')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Products</button>
-              {products.map((product) => (
-                <button key={product} onClick={() => handleSelection('product', product)} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{product}</button>
-              ))}
+              <button onClick={() => clearSelection('product')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Products</button>
+              <div className="max-h-64 overflow-auto py-1">
+                {products.map((product) => (
+                  <label key={product} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" className="form-checkbox" checked={selectedProduct.includes(product)} onChange={() => toggleSelection('product', product)} />
+                    <span className="dark:text-gray-200">{product}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -103,15 +121,20 @@ export default function ClusterGraphFilters({
       {shouldShowCountryFilter() && (
         <div className="relative">
           <button onClick={() => handleDropdownToggle('country')} disabled={loading} className={getButtonClasses(countryDropdownOpen)}>
-            <span className={selectedCountry !== "Country" ? "font-medium" : ""}>{selectedCountry}</span>
+            <span className={selectedCountry.length ? "font-medium" : ""}>{renderButtonLabel('Country', selectedCountry)}</span>
             <ChevronDown size={16} className={loading ? "opacity-50" : ""} />
           </button>
           {countryDropdownOpen && !loading && (
-            <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
-              <button onClick={() => handleSelection('country', 'Country')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Countries</button>
-              {countries.map((country) => (
-                <button key={country} onClick={() => handleSelection('country', country)} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{country}</button>
-              ))}
+            <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
+              <button onClick={() => clearSelection('country')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Countries</button>
+              <div className="max-h-64 overflow-auto py-1">
+                {countries.map((country) => (
+                  <label key={country} className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    <input type="checkbox" className="form-checkbox" checked={selectedCountry.includes(country)} onChange={() => toggleSelection('country', country)} />
+                    <span className="dark:text-gray-200">{country}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -125,9 +148,9 @@ export default function ClusterGraphFilters({
         </button>
         {quarterDropdownOpen && !loading && (
           <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
-            <button onClick={() => handleSelection('quarter', 'Quarter')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Quarters</button>
+            <button onClick={() => { setSelectedQuarter('Quarter'); setQuarterDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Quarters</button>
             {quarters.map((quarter) => (
-              <button key={quarter} onClick={() => handleSelection('quarter', quarter)} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{quarter}</button>
+              <button key={quarter} onClick={() => { setSelectedQuarter(quarter); setQuarterDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{quarter}</button>
             ))}
           </div>
         )}
@@ -141,9 +164,9 @@ export default function ClusterGraphFilters({
         </button>
         {yearDropdownOpen && !loading && (
           <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
-            <button onClick={() => handleSelection('year', 'Year')} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Years</button>
+            <button onClick={() => { setSelectedYear('Year'); setYearDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400">All Years</button>
             {years.map((year) => (
-              <button key={year} onClick={() => handleSelection('year', year)} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{year}</button>
+              <button key={year} onClick={() => { setSelectedYear(year); setYearDropdownOpen(false); }} className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200">{year}</button>
             ))}
           </div>
         )}

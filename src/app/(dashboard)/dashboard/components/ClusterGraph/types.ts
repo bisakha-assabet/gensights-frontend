@@ -1,4 +1,5 @@
 import type * as d3 from "d3"
+import type { Dispatch, SetStateAction } from 'react'
 
 export interface Cluster {
   cluster_id: number
@@ -62,10 +63,10 @@ export interface ClusterGraphControlsProps {
 }
 
 export interface ClusterGraphFiltersProps {
-  selectedProduct: string
-  setSelectedProduct: (value: string) => void
-  selectedCountry: string
-  setSelectedCountry: (value: string) => void
+  selectedProduct: string[]
+  setSelectedProduct: Dispatch<SetStateAction<string[]>>
+  selectedCountry: string[]
+  setSelectedCountry: Dispatch<SetStateAction<string[]>>
   selectedQuarter: string
   setSelectedQuarter: (value: string) => void
   selectedYear: string
