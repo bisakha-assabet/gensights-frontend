@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useState, useCallback, useRef } from "react"
-import type { DataType } from "../types"
-import { buildQuery } from "@/app/(dashboard)/dashboard/utils/query"
-import { getStoredToken } from "@/context/auth/authUtils"
+import { useState, useCallback, useRef } from "react";
+import type { DataType } from "../types";
+import { buildQuery } from "@/app/(dashboard)/dashboard/utils/query";
+import { getStoredToken } from "@/context/auth/authUtils";
 
 const mockData: DataType = {
   clusters: [
@@ -96,273 +96,301 @@ const mockData: DataType = {
       case_no: "MOCK-007",
     },
   ],
-}
+};
 
 // Helper function to get authenticated headers
 const getAuthHeaders = (deviceUuid?: string) => {
-  const token = getStoredToken()
+  const token = getStoredToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-  }
+  };
 
   if (token) {
-    headers["Authorization"] = `Bearer ${token}`
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   if (deviceUuid) {
-    headers["Device"] = deviceUuid
+    headers["Device"] = deviceUuid;
   }
 
-  return headers
-}
+  return headers;
+};
 
 export const useDataManagement = (deviceUuid?: string) => {
-  const [data, setData] = useState<DataType | null>(null)
-  const [allData, setAllData] = useState<DataType | null>(null)
+  const [data, setData] = useState<DataType | null>(null);
+  const [allData, setAllData] = useState<DataType | null>(null);
   const [availableOptions, setAvailableOptions] = useState<{
-    products: string[]
-    countries: string[]
-    quarters: string[]
-    years: string[]
+    products: string[];
+    countries: string[];
+    quarters: string[];
+    years: string[];
   }>({
     products: [],
     countries: [],
     quarters: [],
     years: [],
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const isInitialFetchRef = useRef(false)
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isInitialFetchRef = useRef(false);
 
   // Fetch complete dataset for filter options calculation
   const fetchAllData = useCallback(async () => {
     if (isInitialFetchRef.current) {
-      return
+      return;
     }
-    isInitialFetchRef.current = true
+    isInitialFetchRef.current = true;
     try {
-      const url = `${process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL}/cluster/get-clusters`
+      const url = `${process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL}/cluster/get-clusters`;
 
       const response = await fetch(url, {
         method: "GET",
         headers: getAuthHeaders(deviceUuid),
-      })
+      });
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error("Authentication required. Please log in again.")
+          throw new Error("Authentication required. Please log in again.");
         }
-        throw new Error("Failed to fetch complete data")
+        throw new Error("Failed to fetch complete data");
       }
 
-      const result = await response.json()
+      const result = await response.json();
 
-      console.log("Complete dataset fetched:", result)
-      setAllData(result as DataType)
-      setData(result as DataType)
+      console.log("Complete dataset fetched:", result);
+      setAllData(result as DataType);
+      setData(result as DataType);
     } catch (err) {
-      console.error("Error fetching complete data:", err)
-      const errorMessage = err instanceof Error ? err.message : "Unknown error occurred"
-      setError(errorMessage)
+      console.error("Error fetching complete data:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Unknown error occurred";
+      setError(errorMessage);
 
       // Only fallback to mock data in development or if it's not an auth error
       if (!errorMessage.includes("Authentication")) {
-        setAllData(mockData)
-        setData(mockData)
+        setAllData(mockData);
+        setData(mockData);
       }
     }
-  }, [deviceUuid])
+  }, [deviceUuid]);
 
   // Calculate available filter options based on current selections
   const updateAvailableOptions = (
     selectedProduct: string,
     selectedCountry: string,
     selectedQuarter: string,
-    selectedYear: string,
+    selectedYear: string
   ) => {
-    if (!allData) return
+    if (!allData) return;
 
-    console.log("=== UPDATING AVAILABLE OPTIONS ===")
+    console.log("=== UPDATING AVAILABLE OPTIONS ===");
     console.log("Current selections:", {
       selectedProduct,
       selectedCountry,
       selectedQuarter,
       selectedYear,
-    })
+    });
 
     const tempFilters = {
       product: selectedProduct !== "Product" ? selectedProduct : undefined,
       country: selectedCountry !== "Country" ? selectedCountry : undefined,
       quarter: selectedQuarter !== "Quarter" ? selectedQuarter : undefined,
       year: selectedYear !== "Year" ? selectedYear : undefined,
-    }
+    };
 
-    let questionsForProducts = [...allData.questions]
+    let questionsForProducts = [...allData.questions];
     if (tempFilters.country) {
-      questionsForProducts = questionsForProducts.filter((q) => q.country_code === tempFilters.country)
+      questionsForProducts = questionsForProducts.filter(
+        (q) => q.country_code === tempFilters.country
+      );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""))
+      const quarterNumber = Number.parseInt(
+        tempFilters.quarter.replace("Q", "")
+      );
       questionsForProducts = questionsForProducts.filter((q) => {
-        const date = new Date(q.case_created_date)
-        const questionQuarter = Math.floor(date.getMonth() / 3) + 1
-        return questionQuarter === quarterNumber
-      })
+        const date = new Date(q.case_created_date);
+        const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
+        return questionQuarter === quarterNumber;
+      });
     }
     if (tempFilters.year) {
       questionsForProducts = questionsForProducts.filter((q) => {
-        const date = new Date(q.case_created_date)
-        return date.getFullYear().toString() === tempFilters.year
-      })
+        const date = new Date(q.case_created_date);
+        return date.getFullYear().toString() === tempFilters.year;
+      });
     }
-    const availableProducts = Array.from(new Set(questionsForProducts.map((q) => q.product).filter(Boolean)))
+    const availableProducts = Array.from(
+      new Set(questionsForProducts.map((q) => q.product).filter(Boolean))
+    );
 
-    let questionsForCountries = [...allData.questions]
+    let questionsForCountries = [...allData.questions];
     if (tempFilters.product) {
-      questionsForCountries = questionsForCountries.filter((q) => q.product === tempFilters.product)
+      questionsForCountries = questionsForCountries.filter(
+        (q) => q.product === tempFilters.product
+      );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""))
+      const quarterNumber = Number.parseInt(
+        tempFilters.quarter.replace("Q", "")
+      );
       questionsForCountries = questionsForCountries.filter((q) => {
-        const date = new Date(q.case_created_date)
-        const questionQuarter = Math.floor(date.getMonth() / 3) + 1
-        return questionQuarter === quarterNumber
-      })
+        const date = new Date(q.case_created_date);
+        const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
+        return questionQuarter === quarterNumber;
+      });
     }
     if (tempFilters.year) {
       questionsForCountries = questionsForCountries.filter((q) => {
-        const date = new Date(q.case_created_date)
-        return date.getFullYear().toString() === tempFilters.year
-      })
+        const date = new Date(q.case_created_date);
+        return date.getFullYear().toString() === tempFilters.year;
+      });
     }
-    const availableCountries = Array.from(new Set(questionsForCountries.map((q) => q.country_code).filter(Boolean)))
+    const availableCountries = Array.from(
+      new Set(questionsForCountries.map((q) => q.country_code).filter(Boolean))
+    );
 
-    let questionsForQuarters = [...allData.questions]
+    let questionsForQuarters = [...allData.questions];
     if (tempFilters.product) {
-      questionsForQuarters = questionsForQuarters.filter((q) => q.product === tempFilters.product)
+      questionsForQuarters = questionsForQuarters.filter(
+        (q) => q.product === tempFilters.product
+      );
     }
     if (tempFilters.country) {
-      questionsForQuarters = questionsForQuarters.filter((q) => q.country_code === tempFilters.country)
+      questionsForQuarters = questionsForQuarters.filter(
+        (q) => q.country_code === tempFilters.country
+      );
     }
     if (tempFilters.year) {
-      const quarterNumber = Number.parseInt(tempFilters.year.replace("Q", ""))
+      const quarterNumber = Number.parseInt(tempFilters.year.replace("Q", ""));
       questionsForQuarters = questionsForQuarters.filter((q) => {
-        const date = new Date(q.case_created_date)
-        const questionQuarter = Math.floor(date.getMonth() / 3) + 1
-        return questionQuarter === quarterNumber
-      })
+        const date = new Date(q.case_created_date);
+        const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
+        return questionQuarter === quarterNumber;
+      });
     }
     const availableQuarterNumbers = Array.from(
       new Set(
         questionsForQuarters.map((q) => {
-          const date = new Date(q.case_created_date)
-          return Math.floor(date.getMonth() / 3) + 1
-        }),
-      ),
-    )
-    const availableQuarters = availableQuarterNumbers.map((q) => `Q${q}`).sort()
+          const date = new Date(q.case_created_date);
+          return Math.floor(date.getMonth() / 3) + 1;
+        })
+      )
+    );
+    const availableQuarters = availableQuarterNumbers
+      .map((q) => `Q${q}`)
+      .sort();
 
-    let questionsForYears = [...allData.questions]
+    let questionsForYears = [...allData.questions];
     if (tempFilters.product) {
-      questionsForYears = questionsForYears.filter((q) => q.product === tempFilters.product)
+      questionsForYears = questionsForYears.filter(
+        (q) => q.product === tempFilters.product
+      );
     }
     if (tempFilters.country) {
-      questionsForYears = questionsForYears.filter((q) => q.country_code === tempFilters.country)
+      questionsForYears = questionsForYears.filter(
+        (q) => q.country_code === tempFilters.country
+      );
     }
     if (tempFilters.quarter) {
-      const quarterNumber = Number.parseInt(tempFilters.quarter.replace("Q", ""))
+      const quarterNumber = Number.parseInt(
+        tempFilters.quarter.replace("Q", "")
+      );
       questionsForYears = questionsForYears.filter((q) => {
-        const date = new Date(q.case_created_date)
-        const questionQuarter = Math.floor(date.getMonth() / 3) + 1
-        return questionQuarter === quarterNumber
-      })
+        const date = new Date(q.case_created_date);
+        const questionQuarter = Math.floor(date.getMonth() / 3) + 1;
+        return questionQuarter === quarterNumber;
+      });
     }
     const availableYears = Array.from(
       new Set(
         questionsForYears.map((q) => {
-          const date = new Date(q.case_created_date)
-          return date.getFullYear().toString()
-        }),
-      ),
+          const date = new Date(q.case_created_date);
+          return date.getFullYear().toString();
+        })
+      )
     )
       .filter(Boolean)
-      .sort()
+      .sort();
 
     console.log("Available options calculated:", {
       products: availableProducts.length,
       countries: availableCountries.length,
       quarters: availableQuarters.length,
       years: availableYears.length,
-    })
+    });
 
     setAvailableOptions({
       products: availableProducts,
       countries: availableCountries,
       quarters: availableQuarters,
       years: availableYears,
-    })
-  }
+    });
+  };
 
   // Apply filters (fetch filtered data)
   const applyFilters = async (
     selectedProduct: string,
     selectedCountry: string,
     selectedQuarter: string,
-    selectedYear: string,
+    selectedYear: string
   ) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
       const queryParams = buildQuery({
         product: selectedProduct !== "Product" ? selectedProduct : undefined,
-        country: selectedCountry !== "Country" ? selectedCountry : undefined,
+        country_code:
+          selectedCountry !== "Country" ? selectedCountry : undefined,
         quarter: selectedQuarter !== "Quarter" ? selectedQuarter : undefined,
         year: selectedYear !== "Year" ? selectedYear : undefined,
-      })
+      });
 
-      const url = `${process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL}/cluster/get-clusters${queryParams ? "?" + queryParams : ""}`
+      const url = `${
+        process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL
+      }/cluster/get-clusters${queryParams ? "?" + queryParams : ""}`;
 
-      console.log("=== APPLYING FILTERS ===")
+      console.log("=== APPLYING FILTERS ===");
       console.log("Selected filters:", {
         product: selectedProduct,
         country: selectedCountry,
         quarter: selectedQuarter,
         year: selectedYear,
-      })
-      console.log("Built query:", queryParams)
-      console.log("Full URL:", url)
+      });
+      console.log("Built query:", queryParams);
+      console.log("Full URL:", url);
 
       const response = await fetch(url, {
         method: "GET",
         headers: getAuthHeaders(deviceUuid),
-      })
+      });
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          throw new Error("Authentication required. Please log in again.")
+          throw new Error("Authentication required. Please log in again.");
         }
-        throw new Error("Failed to fetch filtered data")
+        throw new Error("Failed to fetch filtered data");
       }
 
-      const result = await response.json()
+      const result = await response.json();
 
-      console.log("Filtered API Response:", result)
-      console.log("Number of clusters:", result.clusters?.length || 0)
-      console.log("Number of questions:", result.questions?.length || 0)
+      console.log("Filtered API Response:", result);
+      console.log("Number of clusters:", result.clusters?.length || 0);
+      console.log("Number of questions:", result.questions?.length || 0);
 
-      setData(result as DataType)
+      setData(result as DataType);
 
-      return result as DataType
+      return result as DataType;
     } catch (err) {
-      const error = err as Error
-      console.error("Error applying filters:", error)
-      setError("Error applying filters: " + error.message)
-      throw error
+      const error = err as Error;
+      console.error("Error applying filters:", error);
+      setError("Error applying filters: " + error.message);
+      throw error;
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return {
     data,
@@ -375,5 +403,5 @@ export const useDataManagement = (deviceUuid?: string) => {
     fetchAllData,
     updateAvailableOptions,
     applyFilters,
-  }
-}
+  };
+};
