@@ -19,9 +19,9 @@ export default function Header() {
               <Link href="/dashboard" className="text-gray-500 hover:text-gray-700">
                 Dashboard
               </Link>
-              <Link href={`/organizations/${user.organization_id}`} className="text-gray-500 hover:text-gray-700">
+              {/* <Link href={`/organizations/${user.organization_id}`} className="text-gray-500 hover:text-gray-700">
                 Organization
-              </Link>
+              </Link> */}
             </nav>
           )}
         </div>

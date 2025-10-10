@@ -13,7 +13,7 @@ interface LoginResponse {
   first_name?: string;
   last_name?: string;
   user_id?: number;
-  organization_id?: number;
+  // organization_id?: number;
 }
 
 export async function POST(request: Request) {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
           first_name: response.first_name,
           last_name: response.last_name,
           user_id: response.user_id,
-          organization_id: response.organization_id,
+          // organization_id: response.organization_id,
         },
         access: response.access,
       });

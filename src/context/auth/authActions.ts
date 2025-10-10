@@ -238,7 +238,7 @@ export const login = async (
         first_name?: string
         last_name?: string
         user_id?: number
-        organization_id?: number
+        // organization_id?: number
       }
     }>("/auth/login/", "POST", credentials)
 

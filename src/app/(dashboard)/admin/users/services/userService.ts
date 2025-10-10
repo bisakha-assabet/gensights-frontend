@@ -131,10 +131,10 @@ class UserService {
     }
   }
 
-  async inviteUser(orgId: number, inviteData: InviteUserRequest): Promise<InviteUserResponse> {
+  async inviteUser(inviteData: InviteUserRequest): Promise<InviteUserResponse> {
     try {
       const response = await this.makeAuthenticatedRequest<InviteUserResponse | { data: InviteUserResponse }>(
-        `/organizations/${orgId}/invite-user/`,
+        `/users/invite-user/`,
         "POST",
         inviteData,
       )

@@ -31,7 +31,7 @@ const SettingsPage = () => {
     phoneNumber: '',
     therapeuticArea: user?.therapeutic_area || '',
     accessibleCountries: user?.accessible_countries ? user.accessible_countries.join(', ') : '',
-    organization: user?.organization_id?.toString() || ''
+    // organization: user?.organization_id?.toString() || ''
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -112,7 +112,7 @@ const SettingsPage = () => {
       phoneNumber: '',
       therapeuticArea: user?.therapeutic_area || '',
       accessibleCountries: user?.accessible_countries ? user.accessible_countries.join(', ') : '',
-      organization: user?.organization_id?.toString() || ''
+      // organization: user?.organization_id?.toString() || ''
     });
   };
 
@@ -251,20 +251,7 @@ const SettingsPage = () => {
                     />
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Organization ID
-                  </label>
-                  <input
-                    type="text"
-                    value={accountData.organization}
-                    onChange={(e) => setAccountData({...accountData, organization: e.target.value})}
-                    className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    readOnly
-                  />
-                </div>
-
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Therapeutic Area

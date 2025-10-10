@@ -3,7 +3,7 @@ export interface User {
   first_name: string;
   last_name: string;
   user_id: number;
-  organization_id?: number;
+  // organization_id?: number;
   role: string;                        
   therapeutic_area?: string | null;    
   accessible_countries: string[]; 
