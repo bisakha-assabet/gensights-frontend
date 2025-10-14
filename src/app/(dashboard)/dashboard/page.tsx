@@ -231,14 +231,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen text-black dark:text-gray-100">
+    <div className="h-screen text-black dark:text-gray-100">
       <ClusterConnectionNotification
         questionId={clickedQuestionId}
         connectedClusters={connectedClusters}
         onClose={handleCloseNotification}
         isDarkMode={isDarkMode}
       />
-      <main className="flex flex-col h-screen">
+      <main className="flex flex-col h-full">
         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
           <div
             className="flex-1 flex flex-col relative overflow-hidden"

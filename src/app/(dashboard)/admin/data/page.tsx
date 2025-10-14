@@ -48,10 +48,6 @@ const DataPage: React.FC = () => {
       
       const data = await response.json();
       
-      // Debug: Log the actual response structure
-      console.log('Fetch API Response:', data);
-      
-      // Check if the response indicates an error (even with status 200)
       if (data.success === false || data.status_code >= 400) {
         throw new Error(data.message || 'API returned an error');
       }
@@ -60,23 +56,18 @@ const DataPage: React.FC = () => {
       let results: DataItem[] = [];
       
       if (Array.isArray(data)) {
-        // If the response is directly an array
         results = data;
       } else if (data && Array.isArray(data.results)) {
-        // If the response has a results property that's an array
         results = data.results;
       } else if (data && Array.isArray(data.data)) {
-        // If the response has a data property that's an array
         results = data.data;
       } else if (data && data.data === null) {
-        // If the response has data: null (empty state)
         results = [];
       } else if (data && typeof data === 'object') {
         // If the response is an object but doesn't have expected structure
         console.warn('Unexpected API response structure:', data);
         results = [];
       } else {
-        // If the response is neither an array nor an object with expected properties
         console.warn('Unexpected API response:', data);
         results = [];
       }
@@ -88,7 +79,6 @@ const DataPage: React.FC = () => {
     }
   };
 
-  // Check for existing data on component mount
   useEffect(() => {
     fetchData();
   }, []);

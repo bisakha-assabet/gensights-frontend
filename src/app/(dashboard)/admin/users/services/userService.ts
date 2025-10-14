@@ -67,7 +67,6 @@ class UserService {
 
   async getUsers(search?: string): Promise<ApiUser[]> {
     try {
-      console.log("Fetching users with search:", search)
       const searchParam = search ? `?search=${encodeURIComponent(search)}` : ""
       const response = await this.makeAuthenticatedRequest<{ 
         data: { 
@@ -77,8 +76,6 @@ class UserService {
         message: string; 
         success: boolean 
       }>(`/users/${searchParam}`, "GET")
-
-      console.log("Users API response:", response)
 
       if (response && response.data && Array.isArray(response.data.results)) {
         return response.data.results
@@ -148,7 +145,6 @@ class UserService {
 
   async getCountries(): Promise<{ id: number; name: string }[]> {
     try {
-      console.log("Fetching countries")
       const response = await this.makeAuthenticatedRequest<{ 
         data: { 
           meta: { next: string | null; previous: string | null; count: number }; 
@@ -157,8 +153,6 @@ class UserService {
         message: string; 
         success: boolean 
       }>(`/users/countries/`, "GET")
-
-      console.log("Countries API response:", response)
       
       if (response && response.data && Array.isArray(response.data.results)) {
         return response.data.results
@@ -176,7 +170,6 @@ class UserService {
 
   async getTherapeuticAreas(): Promise<{ id: number; area: string }[]> {
     try {
-      console.log("Fetching therapeutic areas")
       const response = await this.makeAuthenticatedRequest<{ 
         data: { 
           meta: { next: string | null; previous: string | null; count: number }; 
@@ -185,8 +178,6 @@ class UserService {
         message: string; 
         success: boolean 
       }>(`/users/therapeutic-areas/`, "GET")
-
-      console.log("Therapeutic areas API response:", response)
       
       if (response && response.data && Array.isArray(response.data.results)) {
         return response.data.results

@@ -127,15 +127,6 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
       const queryString = queryParams.toString()
       const fullUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${apiEndpoint}${queryString ? `?${queryString}` : ""}`
 
-      console.log('Analytics API call:', {
-        url: fullUrl,
-        userRole: user?.role,
-        userProduct,
-        therapeuticArea: user?.therapeutic_area,
-        accessibleCountries: user?.accessible_countries,
-        appliedFilters
-      })
-
       const response = await fetch(fullUrl, {
         method: "GET",
         headers: {

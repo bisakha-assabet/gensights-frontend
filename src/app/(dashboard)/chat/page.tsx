@@ -79,15 +79,11 @@ const ChatWithDataIndexPage: React.FC = () => {
   const convertToChatMessages = (conversation: any): ChatMessage[] => {
     const chatMessages: ChatMessage[] = []
 
-    console.log("Converting conversation:", conversation)
-
     if (conversation.exchanges && Array.isArray(conversation.exchanges)) {
       conversation.exchanges.forEach((exchange: any, exchangeIndex: number) => {
-        console.log(`Processing exchange ${exchangeIndex}:`, exchange)
 
         if (exchange.messages && Array.isArray(exchange.messages)) {
           exchange.messages.forEach((message: any, messageIndex: number) => {
-            console.log(`Processing message ${messageIndex} in exchange ${exchangeIndex}:`, message)
 
             // Convert content array to string if needed
             let content = ""

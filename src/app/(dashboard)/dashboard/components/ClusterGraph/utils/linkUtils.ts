@@ -56,8 +56,6 @@ export const createClusterLinks = (clusters: any[]): Link[] => {
 export const createQuestionLinks = (questions: any[], clusterNodes: Node[]): Link[] => {
   const links: Link[] = []
 
-  console.log("Creating question links, total questions:", questions?.length)
-
   questions?.forEach((question, index) => {
     // Generate the same unique ID as in createQuestionNodes
     const questionId = question.case_no ? `question-${question.case_no}` : `question-idx-${index}`
@@ -69,8 +67,6 @@ export const createQuestionLinks = (questions: any[], clusterNodes: Node[]): Lin
       console.warn("Skipping links for question:", questionId, "- cluster not found:", primaryClusterId)
       return 
     }
-
-    console.log("Creating links for question:", questionId, "to clusters:", question.clusters)
 
     question.clusters.forEach((clusterId: number) => {
       const targetCluster = clusterNodes.find((n) => n.clusterId === clusterId)

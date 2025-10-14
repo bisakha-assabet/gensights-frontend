@@ -27,8 +27,6 @@ export const createClusterNodes = (clusters: any[], clusterPositions: ClusterPos
 export const createQuestionNodes = (questions: any[], clusterNodes: Node[], width: number, height: number): Node[] => {
   const questionNodes: Node[] = []
 
-  console.log("Creating question nodes, total questions:", questions?.length)
-
   questions?.forEach((question, index) => {
     // Generate a unique ID: prefer case_no, fallback to index-based ID
     const questionId = question.case_no ? `question-${question.case_no}` : `question-idx-${index}`

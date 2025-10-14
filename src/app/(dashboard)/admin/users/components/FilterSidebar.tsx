@@ -65,8 +65,6 @@ export default function FilterSidebar({ isOpen, onClose }: FilterSidebarProps) {
   };
 
   const applyFilters = () => {
-    // TODO: Apply filters to the user list
-    console.log('Applied filters:', filters);
     onClose();
   };
 

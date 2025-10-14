@@ -84,7 +84,6 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     try {
       setLoadingCountries(true)
       const countriesData = await userService.getCountries()
-      console.log("Fetched countries:", countriesData)
       setCountries(countriesData)
     } catch (error) {
       console.error("Error fetching countries:", error)
@@ -108,7 +107,6 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     try {
       setLoadingTherapeuticAreas(true)
       const therapeuticAreasData = await userService.getTherapeuticAreas()
-      console.log("Fetched therapeutic areas:", therapeuticAreasData)
       setTherapeuticAreas(therapeuticAreasData)
     } catch (error) {
       console.error("Error fetching therapeutic areas:", error)
@@ -169,11 +167,6 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     e.preventDefault()
 
     if (!validateForm()) return
-
-    console.log("Submitting invite with data:", {
-      countries: formData.accessibleCountries,
-      therapeuticAreas: formData.therapeuticAreas
-    })
 
     const inviteData: InviteUserRequest = {
       email: formData.email,

@@ -150,10 +150,6 @@ const DataImport: React.FC<DataImportProps> = ({
 
       const responseData = await response.json();
       
-      // Log the response for debugging
-      console.log('Import API Response:', responseData);
-
-      // Check if the API returned an error (even with status 200)
       if (!response.ok || responseData.success === false || responseData.status_code >= 400) {
         let errorMessage = 'Failed to import data';
         
@@ -174,7 +170,6 @@ const DataImport: React.FC<DataImportProps> = ({
         throw new Error(errorMessage);
       }
 
-      // If we get here, the import was successful
       onImportSuccess();
 
     } catch (err) {
