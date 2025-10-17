@@ -85,6 +85,11 @@ export interface ClusterGraphFiltersProps {
   setYearDropdownOpen: (value: boolean) => void
   loading: boolean
   closeAllDropdowns: () => void
+  // Cluster count slider controls
+  selectedClusterCount?: number
+  setSelectedClusterCount?: (value: number) => void
+  selectedClusterCountEnabled?: boolean
+  setSelectedClusterCountEnabled?: (value: boolean) => void
 }
 
 export interface ClusterPosition {

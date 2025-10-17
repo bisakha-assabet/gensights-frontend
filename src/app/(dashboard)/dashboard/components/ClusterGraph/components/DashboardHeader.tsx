@@ -31,6 +31,10 @@ interface DashboardHeaderProps {
   setYearDropdownOpen: (open: boolean) => void;
   loading: boolean;
   closeAllDropdowns: () => void;
+  selectedClusterCount?: number;
+  setSelectedClusterCount?: (value: number) => void;
+  selectedClusterCountEnabled?: boolean;
+  setSelectedClusterCountEnabled?: (open: boolean) => void;
   hasAppliedFilters: boolean;
   hasSelectedFilters: boolean;
   onApplyFilters: () => void;
@@ -64,6 +68,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   setYearDropdownOpen,
   loading,
   closeAllDropdowns,
+  selectedClusterCount,
+  setSelectedClusterCount,
+  selectedClusterCountEnabled,
+  setSelectedClusterCountEnabled,
   hasAppliedFilters,
   hasSelectedFilters,
   onApplyFilters,
@@ -102,6 +110,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           setYearDropdownOpen={setYearDropdownOpen}
           loading={loading}
           closeAllDropdowns={closeAllDropdowns}
+          selectedClusterCount={selectedClusterCount}
+          setSelectedClusterCount={setSelectedClusterCount}
+          selectedClusterCountEnabled={selectedClusterCountEnabled}
+          setSelectedClusterCountEnabled={setSelectedClusterCountEnabled}
         />
         
         <FilterActions

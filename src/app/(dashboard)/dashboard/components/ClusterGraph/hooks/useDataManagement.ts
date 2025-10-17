@@ -330,18 +330,27 @@ export const useDataManagement = (deviceUuid?: string) => {
     selectedProduct: string[],
     selectedCountry: string[],
     selectedQuarter: string,
-    selectedYear: string
+    selectedYear: string,
+    clusterCountEnabled?: boolean,
+    clusterCount?: number
   ) => {
     setLoading(true);
     setError(null);
 
     try {
-      const queryParams = buildQuery({
+      const params: Record<string, string | number | (string | number)[] | undefined> = {
         product: selectedProduct.length ? selectedProduct : undefined,
         country_code: selectedCountry.length ? selectedCountry : undefined,
         quarter: selectedQuarter !== "Quarter" ? selectedQuarter : undefined,
         year: selectedYear !== "Year" ? selectedYear : undefined,
-      });
+      };
+
+      if (clusterCountEnabled && typeof clusterCount === 'number') {
+        // send number of clusters as `num_clusters` query param
+        params['num_clusters'] = clusterCount;
+      }
+
+      const queryParams = buildQuery(params);
 
       const url = `${
         process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL
@@ -353,6 +362,8 @@ export const useDataManagement = (deviceUuid?: string) => {
         country: selectedCountry,
         quarter: selectedQuarter,
         year: selectedYear,
+        clusterCountEnabled,
+        clusterCount,
       });
       console.log("Built query:", queryParams);
       console.log("Full URL:", url);

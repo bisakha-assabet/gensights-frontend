@@ -5,11 +5,16 @@ export const useFilterState = () => {
   const [selectedCountry, setSelectedCountry] = useState<string[]>([]);
   const [selectedQuarter, setSelectedQuarter] = useState("Quarter");
   const [selectedYear, setSelectedYear] = useState("Year");
+  // Cluster count slider state (default value 5, disabled by default)
+  const [selectedClusterCount, setSelectedClusterCount] = useState<number>(5);
+  const [selectedClusterCountEnabled, setSelectedClusterCountEnabled] = useState<boolean>(false);
   
   const [appliedProduct, setAppliedProduct] = useState<string[]>([]);
   const [appliedCountry, setAppliedCountry] = useState<string[]>([]);
   const [appliedQuarter, setAppliedQuarter] = useState("Quarter");
   const [appliedYear, setAppliedYear] = useState("Year");
+  const [appliedClusterCount, setAppliedClusterCount] = useState<number>(5);
+  const [appliedClusterCountEnabled, setAppliedClusterCountEnabled] = useState<boolean>(false);
   
   // Dropdown states
   const [productDropdownOpen, setProductDropdownOpen] = useState(false);
@@ -22,7 +27,8 @@ export const useFilterState = () => {
     return selectedProduct.length > 0 || 
       selectedCountry.length > 0 || 
            selectedQuarter !== "Quarter" || 
-           selectedYear !== "Year";
+           selectedYear !== "Year" ||
+           selectedClusterCountEnabled;
   };
 
   // Check if any filters are currently applied
@@ -30,7 +36,8 @@ export const useFilterState = () => {
     return appliedProduct.length > 0 || 
       appliedCountry.length > 0 || 
            appliedQuarter !== "Quarter" || 
-           appliedYear !== "Year";
+           appliedYear !== "Year" ||
+           appliedClusterCountEnabled;
   };
 
   // Reset all filters
@@ -39,10 +46,14 @@ export const useFilterState = () => {
     setSelectedCountry([]);
     setSelectedQuarter("Quarter");
     setSelectedYear("Year");
+    setSelectedClusterCount(5);
+    setSelectedClusterCountEnabled(false);
     setAppliedProduct([]);
     setAppliedCountry([]);
     setAppliedQuarter("Quarter");
     setAppliedYear("Year");
+    setAppliedClusterCount(5);
+    setAppliedClusterCountEnabled(false);
   };
 
   // Close all dropdowns
@@ -62,6 +73,10 @@ export const useFilterState = () => {
     setSelectedQuarter,
     selectedYear,
     setSelectedYear,
+    selectedClusterCount,
+    setSelectedClusterCount,
+    selectedClusterCountEnabled,
+    setSelectedClusterCountEnabled,
     appliedProduct,
     setAppliedProduct,
     appliedCountry,
@@ -70,6 +85,10 @@ export const useFilterState = () => {
     setAppliedQuarter,
     appliedYear,
     setAppliedYear,
+    appliedClusterCount,
+    appliedClusterCountEnabled,
+    setAppliedClusterCount,
+    setAppliedClusterCountEnabled,
     productDropdownOpen,
     setProductDropdownOpen,
     countryDropdownOpen,
