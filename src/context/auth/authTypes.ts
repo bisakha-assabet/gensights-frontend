@@ -5,7 +5,7 @@ export interface User {
   user_id: number;
   // organization_id?: number;
   role: string;                        
-  therapeutic_area?: string | null;    
+  therapeutic_areas?: string | null;    
   accessible_countries: string[]; 
 }
 

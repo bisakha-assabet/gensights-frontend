@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
+import { useAuth } from "@/context/auth"
 
 interface ChangePasswordFormProps {
   onSubmit: (data: {
@@ -21,11 +22,13 @@ export default function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
   const [showPasswords, setShowPasswords] = useState({
     temporary_password: false,
     new_password: false,
     confirm_password: false,
   })
+  const { error: authError, clearError } = useAuth()
 
   const validate = () => {
     const newErrors: Record<string, string> = {}
@@ -58,11 +61,25 @@ export default function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps
     if (validate()) {
       setIsSubmitting(true)
       try {
+        setFormError(null)
+        // Clear any auth-level error before attempting
+        if (authError) clearError()
         await onSubmit({
           email: formData.email,
           temporary_password: formData.temporary_password,
           new_password: formData.new_password,
         })
+      } catch (err: any) {
+        // Prefer structured message from API client, fall back to generic
+        const message = err?.message || err?.detail || "Failed to change password"
+        setFormError(message)
+
+        // If the error clearly refers to temporary/old password, attach to that field
+        const lower = String(message).toLowerCase()
+        if (lower.includes("temporary") || lower.includes("old_password") || lower.includes("old password") || lower.includes("temporary password")) {
+          setErrors((prev) => ({ ...prev, temporary_password: message }))
+        }
+        throw err
       } finally {
         setIsSubmitting(false)
       }
@@ -74,7 +91,21 @@ export default function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
     }
+    // Clear form-level and auth-level errors when user edits fields
+    if (formError) setFormError(null)
+    if (authError) clearError()
   }
+
+  useEffect(() => {
+    if (authError) {
+      setFormError(authError)
+      // If auth error references temporary password, attach to field
+      const lower = String(authError).toLowerCase()
+      if (lower.includes("temporary") || lower.includes("old_password") || lower.includes("temporary password")) {
+        setErrors((prev) => ({ ...prev, temporary_password: authError }))
+      }
+    }
+  }, [authError])
 
   const togglePasswordVisibility = (field: keyof typeof showPasswords) => {
     setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }))
@@ -93,6 +124,11 @@ export default function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps
         {/* Form Container */}
         <div className="bg-white py-12 px-8 shadow-lg rounded-lg border border-gray-200">
           <div className="space-y-6">
+            {formError && (
+              <div className="rounded-md bg-red-50 p-3 border border-red-100">
+                <p className="text-sm text-red-700">{formError}</p>
+              </div>
+            )}
             {/* Email */}
             <div>
               <input

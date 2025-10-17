@@ -91,7 +91,7 @@ export default function UserTable({
         <table className="min-w-full divide-y divide-gray-200 rounded-lg">
           <thead className="bg-blue-400">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">User ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">S. No</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Name</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Email ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
@@ -163,7 +163,7 @@ export default function UserTable({
             ) : (
               users.map((user, index) => (
                 <tr key={user.id} className={index % 2 === 0 ? "bg-blue-50" : "bg-white"}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(currentPage - 1) * entriesPerPage + index + 1}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
                   

@@ -29,7 +29,7 @@ const SettingsPage = () => {
     email: user?.email || '',
     role: user?.role || '',
     phoneNumber: '',
-    therapeuticArea: user?.therapeutic_area || '',
+    therapeuticArea: user?. therapeutic_areas|| '',
     accessibleCountries: user?.accessible_countries ? user.accessible_countries.join(', ') : '',
     // organization: user?.organization_id?.toString() || ''
   });
@@ -87,10 +87,9 @@ const SettingsPage = () => {
     setUpdateError(null);
     
     try {
-      // Updated to match the API endpoint requirements
       await changePassword({
         email: user?.email || '',
-        temporary_password: passwordData.previous,  // Changed from temporary_password to old_password
+        temporary_password: passwordData.previous,  
         new_password: passwordData.new
       });
       
@@ -110,7 +109,7 @@ const SettingsPage = () => {
       email: user?.email || '',
       role: user?.role || '',
       phoneNumber: '',
-      therapeuticArea: user?.therapeutic_area || '',
+      therapeuticArea: user?.therapeutic_areas|| '',
       accessibleCountries: user?.accessible_countries ? user.accessible_countries.join(', ') : '',
       // organization: user?.organization_id?.toString() || ''
     });

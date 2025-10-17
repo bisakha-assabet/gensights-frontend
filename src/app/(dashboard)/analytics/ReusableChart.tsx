@@ -63,14 +63,14 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
         // Therapeutic specialists can only see their assigned product
         if (userProduct) {
           queryParams.append("product", userProduct)
-        } else if (user.therapeutic_area) {
+        } else if (user.therapeutic_areas) {
           // Fallback to therapeutic area if userProduct is not available
           const productMapping: Record<string, string> = {
             "Neurology": "Cetaprofen",
             "Respiratory": "Respilin",
             "Nephrology": "Betacenib",
           }
-          const mappedProduct = productMapping[user.therapeutic_area]
+          const mappedProduct = productMapping[user.therapeutic_areas]
           if (mappedProduct) {
             queryParams.append("product", mappedProduct)
           }
@@ -178,6 +178,7 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   }, [data])
 
   const plotData: Data[] = useMemo(() => {
+    console.log(data)
     if (!data || !data.data || data.data.length === 0) return []
 
     return data.data.map((item) => ({
@@ -191,7 +192,7 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
           width: 1,
         },
       },
-      hovertemplate: "<b>%{x}</b><br>" + "Questions: %{y}<br>" + "Percentage: %{customdata}%<extra></extra>",
+      hovertemplate: `<b>%{x}</b><br/>Value: %{y}<br/>Percentage: %{customdata}<extra></extra>`,
       customdata: item.percentages,
       textposition: "auto" as const,
     }))

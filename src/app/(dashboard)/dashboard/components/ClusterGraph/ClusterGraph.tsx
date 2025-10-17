@@ -1,6 +1,7 @@
 'use client';
 import { useRef, RefObject } from "react";
 import { ClusterGraphProps } from "./types";
+import type { Dispatch, SetStateAction } from 'react';
 import { useClusterSimulation } from "./hooks/useClusterSimulation";
 import { useClusterAnimation } from "./hooks/useClusterAnimation";
 import { useQuestionInteraction } from "./hooks/useQuestionInteraction";
@@ -12,8 +13,9 @@ export default function ClusterGraph({
   currentStep,
   isDarkMode,
   clickHighlightedClusterIds,
-  onQuestionClick
-}: ClusterGraphProps) {
+  onQuestionClick,
+  setCurrentStep
+}: ClusterGraphProps & { setCurrentStep?: Dispatch<SetStateAction<number>> }) {
   const svgRef = useRef<SVGSVGElement>(null) as RefObject<SVGSVGElement>;
  
   const { nodesRef, linksRef } = useClusterSimulation(
@@ -22,7 +24,9 @@ export default function ClusterGraph({
     loading,
     dimensions,
     isDarkMode,
-    onQuestionClick
+    currentStep,
+    onQuestionClick,
+    setCurrentStep // Pass setCurrentStep here
   );
 
   // Handle cluster animations
@@ -62,6 +66,6 @@ export default function ClusterGraph({
         ref={svgRef}
         preserveAspectRatio="xMidYMid meet"
       />
-  </div>
+    </div>
   );
 }

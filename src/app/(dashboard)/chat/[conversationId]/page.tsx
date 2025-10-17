@@ -23,9 +23,10 @@ const ConversationPage: React.FC = () => {
   const params = useParams()
   const conversationId = params?.conversationId as string | undefined
 
-  const wsRef = useRef<WebSocket | null>(null)
   const idRef = useRef<string>("")
-  const [connected, setConnected] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const [streamingMessage, setStreamingMessage] = useState<ChatMessage | null>(null)
+  const [streamingKey, setStreamingKey] = useState(0)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [userHasSentMessage, setUserHasSentMessage] = useState(false)
@@ -43,6 +44,15 @@ const ConversationPage: React.FC = () => {
       idRef.current = getRandomUUID()
     }
   }, [conversationId])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
 
   const convertToChatMessages = (conversation: any): ChatMessage[] => {
     const chatMessages: ChatMessage[] = []
@@ -217,12 +227,13 @@ const ConversationPage: React.FC = () => {
             }
           })
 
-          // Add all responses to chat messages
-          allResponses.forEach(response => {
-            chatMessages.push(response)
-          })
+          // For history, only display the primary (first) assistant response inline
+          // and store any additional responses in exchangeResponses so the UI can
+          // toggle between them instead of stacking all of them.
+          if (allResponses.length > 0) {
+            chatMessages.push(allResponses[0])
+          }
 
-          // Handle multiple responses for regeneration feature
           if (allResponses.length > 1) {
             setExchangeResponses((prev) => ({
               ...prev,
@@ -262,20 +273,140 @@ const ConversationPage: React.FC = () => {
     }
   }, [conversationId])
 
-  const addUserMessage = (content: string) => {
-    const userMessage: ChatMessage = {
-      type: "USER",
-      data: { type: "TEXT", content },
-      ui_properties: { disable_submit: false, disable_close: false, disable_text: false },
-      show_chat: true,
-      process_completed: true,
-      message_id: getRandomUUID(),
-      conversation_id: conversationId,
-      exchange_index: Math.floor(messages.length / 2),
+  const sendMessageViaStreamAPI = async (userMessage: string) => {
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) throw new Error("No authentication token found")
+
+      setIsProcessing(true)
+      setStreamingMessage(null)
+      setStreamingKey(0)
+
+      abortControllerRef.current = new AbortController()
+
+      const currentConversationId = conversationId || idRef.current
+      const realExchangeIndex = Math.floor(messages.length / 2)
+
+      const userChatMessage: ChatMessage = {
+        type: "USER",
+        data: { type: "TEXT", content: userMessage },
+        ui_properties: { disable_submit: false, disable_close: false, disable_text: false },
+        show_chat: true,
+        process_completed: true,
+        message_id: getRandomUUID(),
+        conversation_id: currentConversationId,
+        exchange_index: realExchangeIndex,
+      }
+
+      setMessages((prev) => [...prev, userChatMessage])
+      setUserHasSentMessage(true)
+
+      const url = new URL(`${process.env.NEXT_PUBLIC_MEDGENTICS_API_BASE_URL}/conversations/chat/stream`)
+      if (currentConversationId) url.searchParams.append("conversation_id", currentConversationId)
+
+      console.log("Sending streaming chat request to:", url.toString())
+
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "text/event-stream",
+        },
+        body: JSON.stringify({ user_entry: { text: userMessage } }),
+        signal: abortControllerRef.current.signal,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Streaming API error:", errorText)
+        throw new Error(`API request failed: ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ""
+      let accumulatedText = ""
+      let tempMessageId = getRandomUUID()
+      let tempConversationId = currentConversationId
+
+      if (!reader) throw new Error("No response body reader available")
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split("\n")
+        buffer = lines.pop() || ""
+
+        for (const line of lines) {
+          if (!line.trim() || line.startsWith(":")) continue
+          if (line.startsWith("event:")) continue
+          if (line.startsWith("data:")) {
+            const data = line.substring(5).trim()
+            try {
+              const parsed = JSON.parse(data)
+
+              if (parsed.type === "conversation_start") {
+                if (parsed.conversation_id) tempConversationId = parsed.conversation_id
+                if (parsed.user_message_id) tempMessageId = parsed.user_message_id
+              }
+
+              if (parsed.type === "TEXT" && parsed.delta) {
+                accumulatedText += parsed.delta
+                const streamingMsg: ChatMessage = {
+                  type: "ASSISTANT",
+                  data: { type: "TEXT", content: accumulatedText },
+                  ui_properties: { disable_submit: false, disable_close: false, disable_text: false },
+                  show_chat: true,
+                  process_completed: false,
+                  message_id: tempMessageId,
+                  conversation_id: tempConversationId,
+                  exchange_index: realExchangeIndex,
+                }
+                setStreamingMessage({ ...streamingMsg })
+                setStreamingKey((prev) => prev + 1)
+              }
+
+              if (parsed.type === "COMPLETE") {
+                // create final assistant message
+                if (accumulatedText.trim()) {
+                  const assistantMessage: ChatMessage = {
+                    type: "ASSISTANT",
+                    data: { type: "TEXT", content: accumulatedText.trim() },
+                    ui_properties: { disable_submit: false, disable_close: false, disable_text: false },
+                    show_chat: true,
+                    process_completed: true,
+                    message_id: tempMessageId,
+                    conversation_id: tempConversationId,
+                    exchange_index: realExchangeIndex,
+                  }
+                  setMessages((prev) => [...prev, assistantMessage])
+                }
+                setStreamingMessage(null)
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e)
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        console.log("Streaming request was aborted")
+      } else {
+        console.error("Error in streaming:", error)
+      }
+      setStreamingMessage(null)
+    } finally {
+      setIsProcessing(false)
+      abortControllerRef.current = null
     }
-    setMessages((prev) => [...prev, userMessage])
-    setUserHasSentMessage(true)
-    setIsProcessing(true)
+  }
+
+  const addUserMessage = (content: string) => {
+    sendMessageViaStreamAPI(content)
   }
 
   const handleRegenerateResponse = async (conversationId: string, exchangeIndex: number) => {
@@ -383,10 +514,33 @@ const ConversationPage: React.FC = () => {
           }
         })
 
-        // Update messages by replacing the status message 
+        // Replace assistant/status messages for this exchange and insert regenerated message
         setMessages((prev) => {
-          const filtered = prev.filter((m) => !(m.exchange_index === exchangeIndex && m.type === "ASSISTANT"))
-          return [...filtered, regeneratedMessage]
+          const filtered = prev.filter((m) => !(m.exchange_index === exchangeIndex && (m.type === "ASSISTANT" || m.data.type === "STATUS")))
+
+          const result: ChatMessage[] = []
+          let inserted = false
+
+          for (let i = 0; i < filtered.length; i++) {
+            const m = filtered[i]
+            result.push(m)
+
+            if (!inserted && m.type === "USER" && m.exchange_index === exchangeIndex) {
+              result.push(regeneratedMessage)
+              inserted = true
+            }
+          }
+
+          if (!inserted) {
+            const idx = result.findIndex((m) => (m.exchange_index ?? 0) > exchangeIndex)
+            if (idx === -1) {
+              result.push(regeneratedMessage)
+            } else {
+              result.splice(idx, 0, regeneratedMessage)
+            }
+          }
+
+          return result
         })
 
         console.log("✅ Regenerated response processed and displayed")
@@ -480,127 +634,7 @@ const ConversationPage: React.FC = () => {
 
   const combinedMessages = useChatMessages(messages)
 
-  useEffect(() => {
-    if (!wsRef.current && idRef.current) {
-      const token = localStorage.getItem("token")
-
-      const url = `${process.env.NEXT_PUBLIC_WS_BASE_URL}/ws/ai/${idRef.current}/?token=${token}&conversation_id=${conversationId}`
-      console.log("Attempting WebSocket connection:", url, "with token:", token ? "present" : "missing")
-
-      try {
-        wsRef.current = new WebSocket(url)
-
-        wsRef.current.onopen = () => setConnected(true)
-
-        wsRef.current.onmessage = (event) => {
-          try {
-            const rawData = JSON.parse(event.data)
-            console.log(" Raw WebSocket data received:", rawData)
-
-            let messageWithProperties: ChatMessage
-
-            // Check if this is a regenerated response format
-            if (rawData.data && rawData.data.response && rawData.data.response.content) {
-              console.log(" Processing regenerated response format")
-
-              // Transform regenerated response to ChatMessage format
-              const responseData = rawData.data
-              const content = responseData.response.content
-
-              // Find the TEXT content from the content array
-              const textContent = content.find((c: any) => c.type === "TEXT")
-              const referencesContent = content.find((c: any) => c.type === "REFERENCES")
-
-              messageWithProperties = {
-                type: "ASSISTANT",
-                data: {
-                  type: "TEXT",
-                  content: textContent ? textContent.content : "",
-                  citations: referencesContent ? referencesContent.content.citations : undefined,
-                },
-                ui_properties: { disable_submit: false, disable_close: false, disable_text: false },
-                show_chat: true,
-                process_completed: true,
-                message_id: responseData.response_id || getRandomUUID(),
-                conversation_id: responseData.conversation_id || conversationId,
-                exchange_index: responseData.exchange_index ?? Math.floor(messages.length / 2),
-              }
-            } else {
-              // Handle regular WebSocket message format
-              const data = rawData as ChatMessage
-              messageWithProperties = {
-                ...data,
-                message_id: data.message_id || getRandomUUID(),
-                conversation_id: data.conversation_id || conversationId,
-                exchange_index: data.exchange_index ?? Math.floor(messages.length / 2),
-              }
-            }
-
-            console.log(" Processed WebSocket message:", {
-              type: messageWithProperties.type,
-              dataType: messageWithProperties.data.type,
-              exchangeIndex: messageWithProperties.exchange_index,
-              messageId: messageWithProperties.message_id,
-            })
-
-            setMessages((prev) => {
-              const filtered = prev.filter((m) => {
-                // Remove STATUS messages for this exchange
-                if (m.exchange_index === messageWithProperties.exchange_index && m.data.type === "STATUS") {
-                  console.log(" Removing STATUS message for exchange", messageWithProperties.exchange_index)
-                  return false
-                }
-                if (
-                  messageWithProperties.type === "ASSISTANT" &&
-                  (messageWithProperties.data.type === "TEXT" || messageWithProperties.data.type === "FIGURE")
-                ) {
-                  const shouldRemove =
-                    m.exchange_index === messageWithProperties.exchange_index && m.type === "ASSISTANT"
-                  if (shouldRemove) {
-                    console.log(
-                      " Replacing existing assistant message for exchange",
-                      messageWithProperties.exchange_index,
-                    )
-                  }
-                  return !shouldRemove
-                }
-
-                return true
-              })
-
-              console.log(" Adding new message to filtered array")
-              return [...filtered, messageWithProperties]
-            })
-
-            if (messageWithProperties.data.type === "STATUS") {
-              setIsProcessing(messageWithProperties.data.content === "Processing")
-            } else if (
-              messageWithProperties.process_completed ||
-              messageWithProperties.data.type === "TEXT" ||
-              messageWithProperties.data.type === "FIGURE"
-            ) {
-              setIsProcessing(false)
-            }
-          } catch (err) {
-            console.error("❌ Error parsing WebSocket message:", err)
-          }
-        }
-
-        wsRef.current.onclose = () => setConnected(false)
-        wsRef.current.onerror = () => setConnected(false)
-      } catch (error) {
-        console.error("Failed to create WebSocket connection:", error)
-        setConnected(false)
-      }
-    }
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close()
-        wsRef.current = null
-      }
-    }
-  }, [conversationId])
+  // WebSocket removed: using server SSE stream endpoint for live responses instead.
 
   if (conversationId && (conversationLoading || isLoadingExistingConversation)) {
     return (
@@ -632,7 +666,7 @@ const ConversationPage: React.FC = () => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className=" h-[calc(100vh-65px)] w-full flex flex-col">
       {conversation && (
         <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1E1E1E] px-4 py-3">
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -663,6 +697,21 @@ const ConversationPage: React.FC = () => {
                   onNextResponse={handleNextResponse}
                 />
               ))}
+              {streamingMessage && (
+                <MessageBubble
+                  key={`streaming-${
+                    typeof streamingMessage.data.content === "string"
+                      ? streamingMessage.data.content.length
+                      : JSON.stringify(streamingMessage.data.content ?? "").length
+                  }`}
+                  message={streamingMessage}
+                  isProcessing={false}
+                  onRegenerateResponse={handleRegenerateResponse}
+                  exchangeResponses={exchangeResponses}
+                  onPreviousResponse={handlePreviousResponse}
+                  onNextResponse={handleNextResponse}
+                />
+              )}
             </div>
           </div>
         )}

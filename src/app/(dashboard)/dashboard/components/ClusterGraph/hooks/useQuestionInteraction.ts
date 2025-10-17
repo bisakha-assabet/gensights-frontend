@@ -37,10 +37,10 @@ export const useQuestionInteraction = ({
         if (currentStep === 0) {
           return d.clusterIds?.length > 1 ? "pointer" : "default";
         } else {
-          const targetClusterId = currentStep - 1;
-          const isInCurrentCluster = d.clusterIds?.includes(targetClusterId);
-          const hasMultipleConnections = d.clusterIds?.length > 1;
-          return (isInCurrentCluster && hasMultipleConnections) ? "pointer" : "default";
+  const targetClusterId = currentStep - 1;
+  const isInCurrentCluster = d.clusterIds?.includes(targetClusterId);
+      const hasMultipleConnections = d.clusterIds?.length > 1;
+      return (isInCurrentCluster && hasMultipleConnections) ? "pointer" : "default";
         }
       })
       .on("click", (event: MouseEvent, d: any) => {
@@ -88,7 +88,7 @@ export const useQuestionInteraction = ({
           // In storytelling mode
           const targetClusterId = currentStep - 1;
           if (d.clusterId === targetClusterId) return 1; // Keep current cluster highlighted
-          return connectedClusterIds.includes(d.clusterId) ? 0.8 : 5;
+          return connectedClusterIds.includes(d.clusterId) ? 0.8 : 0.05;
         }
       })
       .attr("stroke", (d: any) => {
@@ -121,7 +121,7 @@ export const useQuestionInteraction = ({
             ? sizes.clusterRadius * 1.2 
             : sizes.clusterRadius;
         } else {
-          const targetClusterId = currentStep - 1;
+          const targetClusterId = currentStep;
           if (d.clusterId === targetClusterId) return sizes.focusedClusterRadius;
           return connectedClusterIds.includes(d.clusterId) 
             ? sizes.clusterRadius * 1.2 

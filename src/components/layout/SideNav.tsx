@@ -293,9 +293,9 @@ const SideNav = () => {
 
   return (
     <div
-      className={`h-screen bg-white dark:bg-[#1C1C1C] border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${
+      className={`sticky top-0 h-screen bg-white dark:bg-[#1C1C1C] border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ${
         isCollapsed ? "w-16" : "w-64"
-      } relative flex flex-col`}
+      } z-40 flex flex-col`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 h-[65px] flex-shrink-0">
@@ -345,8 +345,8 @@ const SideNav = () => {
         </Link>
       </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden flex flex-col">
+  {/* Scrollable Content Area */}
+  <div className="flex-1 overflow-hidden flex flex-col">
         {/* Navigation Menu */}
         <nav className="px-4 space-y-2 flex-shrink-0">
           {menuItems.map((item) => {

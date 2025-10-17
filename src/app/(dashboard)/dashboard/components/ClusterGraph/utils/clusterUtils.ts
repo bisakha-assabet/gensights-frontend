@@ -74,8 +74,9 @@ export const calculateSizes = (width: number, height: number) => {
   return {
     clusterRadius: minDimension * 0.01,
     focusedClusterRadius: minDimension * 0.025,
-    questionRadius: minDimension * 0.005,
-    focusedQuestionRadius: minDimension * 0.008,
+  // increased question radii slightly so question circles appear a bit larger
+  questionRadius: minDimension * 0.007,
+  focusedQuestionRadius: minDimension * 0.01,
     fontSize: minDimension * 0.02,
     questionOrbitRadius: minDimension * 0.08,
     linkDistance: minDimension * 0.12,

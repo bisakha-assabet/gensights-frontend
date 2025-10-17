@@ -306,8 +306,13 @@ export const login = async (
       throw new Error("No access token received from login")
     }
   } catch (error: any) {
-    setError(error.message || "Login failed")
     console.error("Login error:", error)
+    // Provide a clearer message for invalid credentials
+    if (error?.status === 401 || error?.status === 400) {
+      setError("Invalid email or password")
+    } else {
+      setError(error.message || "Login failed")
+    }
     throw error
   } finally {
     setLoading(false)
@@ -345,7 +350,12 @@ export const changePassword = async (
 
     setError(null)
   } catch (error: any) {
-    setError(error.message || "Failed to change password")
+    console.error("Change password error:", error)
+    if (error?.status === 400 || error?.status === 401) {
+      setError("Invalid temporary password or email")
+    } else {
+      setError(error.message || "Failed to change password")
+    }
     throw error
   }
 }

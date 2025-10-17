@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import UserTable from "./components/UserTable";
 import AddUserModal from "./components/AddUser";
-import EditUserModal from "./components/EditUser"; // Import the new component
+import EditUserModal from "./components/EditUser"; 
 import FilterSidebar from "./components/FilterSidebar";
 import { userService } from "./services/userService";
 import type { ApiUser, InviteUserRequest } from "./types/api.types";
@@ -93,7 +93,6 @@ export default function UserPage() {
   };
 
   const handleEditUser = (user: User) => {
-    // Convert User back to ApiUser format for the modal
     const apiUser: ApiUser = {
       user_id: user.id,
       first_name: user.name.split(" ")[0] || "",

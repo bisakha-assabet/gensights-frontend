@@ -225,7 +225,16 @@ export default function EditUserModal({ isOpen, onClose, onUpdateUser, user }: E
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">EDIT USER</h2>
+          <div className="flex items-start justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">EDIT USER</h2>
+            <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  X
+            </button>
+          </div>
           {successMessage && (
             <div className="mb-4 p-3 rounded-md bg-green-100 text-green-800 text-sm font-medium">
               {successMessage}

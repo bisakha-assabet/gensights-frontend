@@ -38,14 +38,12 @@ class UserService {
         throw new Error("No authentication token found")
       }
 
-      // First attempt with current token
       try {
         const response = await apiClient<T>(endpoint, method, body, {
           Authorization: `Bearer ${token}`,
         })
         return response
       } catch (error: any) {
-        // If we get a 401, try to refresh the token
         if (error.status === 401) {
           const refreshSuccessful = await this.refreshTokenIfNeeded()
 
@@ -145,6 +143,7 @@ class UserService {
 
   async getCountries(): Promise<{ id: number; name: string }[]> {
     try {
+      // First request
       const response = await this.makeAuthenticatedRequest<{ 
         data: { 
           meta: { next: string | null; previous: string | null; count: number }; 
@@ -153,9 +152,32 @@ class UserService {
         message: string; 
         success: boolean 
       }>(`/users/countries/`, "GET")
-      
+
       if (response && response.data && Array.isArray(response.data.results)) {
-        return response.data.results
+        const collected: { id: number; name: string }[] = [...response.data.results]
+        let next = response.data.meta?.next || null
+
+        while (next) {
+          try {
+            const nextEndpoint = next.startsWith(API_BASE_URL) ? next.replace(API_BASE_URL, "") : next
+            const nextResp = await this.makeAuthenticatedRequest<{ data: { meta: { next: string | null }; results: { id: number; name: string }[] } }>(
+              nextEndpoint,
+              "GET",
+            )
+
+            if (nextResp && nextResp.data && Array.isArray(nextResp.data.results)) {
+              collected.push(...nextResp.data.results)
+              next = nextResp.data.meta?.next || null
+            } else {
+              break
+            }
+          } catch (err) {
+            console.warn("Failed to fetch next page of countries:", err)
+            break
+          }
+        }
+
+        return collected
       } else if (Array.isArray(response)) {
         return response
       } else {

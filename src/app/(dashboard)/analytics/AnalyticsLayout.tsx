@@ -157,7 +157,7 @@ export const AnalyticsFilters = () => {
   // Get filter labels with role-based context
   const getProductFilterLabel = () => {
     if (user?.role === 'THERAPEUTIC_SPECIALIST') {
-      return `Product (Auto-filtered: ${userProduct || user.therapeutic_area})`
+      return `Product (Auto-filtered: ${userProduct || user.therapeutic_areas})`
     }
     return "Product"
   }
@@ -256,7 +256,7 @@ export const AnalyticsFilters = () => {
 
   // Show warning if user has no therapeutic area (for Therapeutic Specialist)
   const showNoTherapeuticAreaWarning = useMemo(() => {
-    return user?.role === 'THERAPEUTIC_SPECIALIST' && !user.therapeutic_area
+    return user?.role === 'THERAPEUTIC_SPECIALIST' && !user.therapeutic_areas
   }, [user])
 
   const countryOptions = useMemo(
@@ -327,7 +327,7 @@ export const AnalyticsFilters = () => {
               <div className="mt-2 text-sm text-blue-700">
                 <p>
                   {user?.role === 'THERAPEUTIC_SPECIALIST' && 
-                    `Your analytics are automatically filtered to show only data for your assigned product (${userProduct || user.therapeutic_area}).`
+                    `Your analytics are automatically filtered to show only data for your assigned product (${userProduct || user.therapeutic_areas}).`
                   }
                   {user?.role === 'COUNTRY_HEAD' && 
                     `Your analytics are automatically filtered to show only data for your assigned countries (${user.accessible_countries?.length || 0} countries).`
@@ -513,11 +513,11 @@ export const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({ children, titl
                       {user.role.replace('_', ' ')}
                     </span>
                   </span>
-                  {user.role === 'THERAPEUTIC_SPECIALIST' && user.therapeutic_area && (
+                  {user.role === 'THERAPEUTIC_SPECIALIST' && user.therapeutic_areas && (
                     <span className="flex items-center gap-1">
                       <span className="font-medium">Product:</span>
                       <span className="px-2 py-1 bg-green-100 text-green-800 rounded-md text-xs">
-                        {userProduct || user.therapeutic_area}
+                        {userProduct || user.therapeutic_areas}
                       </span>
                     </span>
                   )}

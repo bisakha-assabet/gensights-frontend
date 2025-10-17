@@ -82,25 +82,18 @@ export const createQuestionElements = ({ svg, nodes, links, dimensions, onQuesti
         </div>
       `
 
-      // Use the new showTooltip function
       showTooltip(tooltipContent, event)
     })
     .on("mousemove", (event, d) => {
-      // Use the new updateTooltipPosition function
       updateTooltipPosition(event)
     })
     .on("mouseleave", (event, d) => {
-      // Use the new hideTooltip function
       hideTooltip()
     })
-    // Add click handler for multi-cluster questions
     .on("click", (event, d) => {
-      // Prevent event bubbling
       event.stopPropagation()
 
-      // Only handle clicks if we have the callback and this question has multiple clusters
       if (onQuestionClick && d.clusterIds && d.clusterIds.length > 1) {
-        // Find all other clusters this question is connected to
         const connectedClusterIds = d.clusterIds.slice() // Copy the array
 
         // Call the callback with the question ID and connected cluster IDs

@@ -13,13 +13,31 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ email, password, onEmailChange, onPasswordChange }: LoginFormProps) {
-  const { login } = useAuth();
+  const { login, error, clearError, loading } = useAuth();
+  const [localLoading, setLocalLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login({ email, password });
+    setLocalLoading(true);
+    try {
+      await login({ email, password });
+    } catch (err) {
+      // error is handled and stored in context; swallow to avoid unhandled rejection
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
+  const handleEmailChange = (value: string) => {
+    if (error) clearError();
+    onEmailChange(value);
+  };
+
+  const handlePasswordChange = (value: string) => {
+    if (error) clearError();
+    onPasswordChange(value);
   };
 
   return (
@@ -41,7 +59,7 @@ export default function LoginForm({ email, password, onEmailChange, onPasswordCh
               <input
                 type="email"
                 value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
+                onChange={(e) => handleEmailChange(e.target.value)}
                 placeholder="Email Address"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500"
                 required
@@ -52,7 +70,7 @@ export default function LoginForm({ email, password, onEmailChange, onPasswordCh
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => onPasswordChange(e.target.value)}
+                onChange={(e) => handlePasswordChange(e.target.value)}
                 placeholder="Password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-gray-700 placeholder-gray-500 pr-12"
                 required
@@ -79,11 +97,18 @@ export default function LoginForm({ email, password, onEmailChange, onPasswordCh
               </label>
             </div>
             
+            {error && (
+              <div className="mt-2 text-sm text-red-600" role="alert" aria-live="assertive">
+                {error}
+              </div>
+            )}
+
             <button
               onClick={handleSubmit}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              disabled={localLoading}
+              className={`w-full py-3 px-4 rounded-lg font-medium focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${localLoading ? 'bg-blue-400 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
             >
-              Sign In
+              {localLoading ? 'Signing In...' : 'Sign In'}
             </button>
           </div>
           

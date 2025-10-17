@@ -18,7 +18,9 @@ export const useClusterSimulation = (
   loading: boolean,
   dimensions: { width: number; height: number },
   isDarkMode: boolean,
+  currentStep: number,
   onQuestionClick?: (questionId: string, connectedClusterIds: number[]) => void,
+  setCurrentStep?: (step: number) => void,
 ) => {
   const simulationRef = useRef<d3.Simulation<Node, Link> | null>(null)
   const nodesRef = useRef<Node[]>([])
@@ -52,7 +54,7 @@ export const useClusterSimulation = (
 
     // Create visual elements
     const linkElements = createLinkElements({ svg, links, isDarkMode })
-    const { clusterElements, clusterLabels } = createClusterElements({ svg, nodes, dimensions })
+  const { clusterElements, clusterLabels } = createClusterElements({ svg, nodes, dimensions, currentStep, data, setCurrentStep })
     const questionElements = createQuestionElements({ svg, nodes, links, dimensions, onQuestionClick })
 
     // Create simulation
@@ -74,7 +76,7 @@ export const useClusterSimulation = (
 
     simulationRef.current = simulation
 
-    // Animation tick
+   // Animation tick
     simulation.on("tick", () => {
       linkElements
         .attr("x1", (d) => (d.source as Node).x ?? 0)
@@ -84,7 +86,12 @@ export const useClusterSimulation = (
 
       clusterElements.attr("cx", (d) => d.x ?? 0).attr("cy", (d) => d.y ?? 0)
       questionElements.attr("cx", (d) => d.x ?? 0).attr("cy", (d) => d.y ?? 0)
-      clusterLabels.attr("x", (d) => d.x ?? 0).attr("y", (d) => (d.y ?? 0) - 15)
+      clusterLabels.attr("x", (d) => d.x ?? 0).attr("y", (d) => (d.y ?? 0) + (sizes.clusterRadius + 18))
+      
+      // Update cluster count position if it exists
+      svg.selectAll(".cluster-count text")
+        .attr("x", (d: any) => d.x ?? 0)
+        .attr("y", (d: any) => (d.y ?? 0) + 5)
     })
 
     // Stop simulation after initial settling

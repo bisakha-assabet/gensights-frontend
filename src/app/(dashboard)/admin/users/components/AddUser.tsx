@@ -27,7 +27,7 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     firstName: "",
     lastName: "",
     role: "",
-    therapeuticAreas: [] as number[], // Changed to array for multiple selection
+    therapeuticAreas: [] as number[], 
     accessibleCountries: [] as number[],
   })
 
@@ -47,31 +47,26 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     }
   }, [isOpen])
 
-  // Effect to handle role-based automatic selections
   useEffect(() => {
     const { role } = formData
     
     if (role === "Global Head" || role === "Global Admin") {
-      // Auto-select all countries and therapeutic areas
       setFormData(prev => ({
         ...prev,
         accessibleCountries: countries.map(c => c.id),
         therapeuticAreas: therapeuticAreas.map(ta => ta.id)
       }))
     } else if (role === "Country Head") {
-      // Auto-select all therapeutic areas, keep selected countries
       setFormData(prev => ({
         ...prev,
         therapeuticAreas: therapeuticAreas.map(ta => ta.id)
       }))
     } else if (role === "Therapeutic Specialist") {
-      // Auto-select all countries, keep selected therapeutic areas
       setFormData(prev => ({
         ...prev,
         accessibleCountries: countries.map(c => c.id)
       }))
     } else if (role === "") {
-      // Clear selections when no role is selected
       setFormData(prev => ({
         ...prev,
         accessibleCountries: [],
@@ -176,7 +171,7 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
 
     // Only include therapeutic areas and countries for non-global roles
     if (formData.role !== "Global Admin" && formData.role !== "Global Head") {
-      inviteData.therapeutic_area = formData.therapeuticAreas
+      inviteData.therapeutic_areas = formData.therapeuticAreas
       inviteData.accessible_countries = formData.accessibleCountries
     }
 
@@ -235,7 +230,17 @@ export default function AddUserModal({ isOpen, onClose, onInviteUser }: AddUserM
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">INVITE USER</h2>
+          <div className="flex items-start justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">INVITE USER</h2>
+            <button
+              type="button"
+              onClick={handleCancel}
+              aria-label="Close invite user modal"
+              className="ml-4 px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              X
+            </button>
+          </div>
 
           {/* ✅ Success message */}
           {successMessage && (

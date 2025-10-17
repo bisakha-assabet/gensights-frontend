@@ -14,7 +14,7 @@ export interface InviteUserRequest {
   email: string
   full_name: string
   accessible_countries?: number[]
-  therapeutic_area?: number[]
+  therapeutic_areas?: number[]
   role: string
 }
 
@@ -22,7 +22,7 @@ export interface InviteUserResponse {
   email: string
   full_name: string
   accessible_countries: number[]
-  therapeutic_area: number[] | string
+  therapeutic_areas: number[] | string
   role: string
 }
 

@@ -75,13 +75,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Derived property for dashboard: assign product for therapeutic specialists
   const userProduct = (() => {
     if (!user) return null
-    if (user.role === "Therapeutic Specialist" && user.therapeutic_area) {
+    if (user.role === "Therapeutic Specialist" && user.therapeutic_areas) {
       const productMapping: Record<string, string> = {
         "Neurology": "Cetaprofen",
         "Respiratory": "Respilin",
         "Nephrology": "Betacenib",
       }
-      return productMapping[user.therapeutic_area] || null
+      return productMapping[user.therapeutic_areas] || null
     }
     return null
   })()
